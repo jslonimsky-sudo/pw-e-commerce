@@ -1,0 +1,10 @@
+const products = [
+  { id: 1, name: "Shadow Black", price: 4500, image: "/img/negra.jpg",  tag: "BESTSELLER" },
+  { id: 2, name: "Emerald Core", price: 4900, image: "/img/verde.jpg",  tag: "NUEVO" },
+  { id: 3, name: "Cocoa Classic", price: 5200, image: "/img/marron.jpg" },
+  { id: 4, name: "Sky Blue",      price: 4700, image: "/img/celeste.jpg" },
+  { id: 5, name: "Rose Edition",  price: 5000, image: "/img/rosa.jpg" },
+  { id: 6, name: "Core Black",    price: 4800, image: "/img/basica.jpg" },
+];
+
+export default products;

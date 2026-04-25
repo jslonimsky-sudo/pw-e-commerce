@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>JS Studios — Colección 2026</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+</head>
+<body>
+
+  <header>
+    <div class="header-inner">
+      <a href="#" class="logo" onclick="showPage('home')" aria-label="JS Studios - Inicio">
+        JS <span>STUDIOS</span>
+      </a>
+      <nav aria-label="Navegación principal">
+        <ul>
+          <li><a href="#" onclick="showPage('coleccion')">Colección</a></li>
+          <li><a href="#destacados" onclick="showPage('home')">Destacados</a></li>
+          <li><a href="#nosotros">Nosotros</a></li>
+        </ul>
+      </nav>
+      <button class="cart-btn" id="cartBtn" aria-label="Ver carrito">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+          <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+        </svg>
+        Carrito
+        <span class="cart-count" id="cartCount" aria-live="polite">0</span>
+      </button>
+    </div>
+  </header>
+
+  <main>
+
+    <!-- PÁGINA: HOME -->
+    <div id="page-home">
+
+      <section class="hero" aria-label="Sección principal">
+        <div class="hero-bg" aria-hidden="true"></div>
+        <div class="hero-content">
+          <span class="hero-badge"> NUEVA TEMPORADA</span>
+          <h1 class="hero-title">COLECCIÓN<br>2026</h1>
+          <a href="#" class="hero-cta" onclick="showPage('coleccion')">VER COLECCIÓN</a>
+        </div>
+      </section>
+
+      <section class="products-section" id="destacados" aria-labelledby="destacados-title">
+        <div class="products-header">
+          <h2 class="products-title" id="destacados-title">DESTACADOS</h2>
+          <span class="products-count">4 MODELOS</span>
+        </div>
+        <ul class="products-grid" id="featuredGrid" role="list"></ul>
+        <div class="ver-todos-wrap">
+          <button class="ver-todos-btn" onclick="showPage('coleccion')">VER TODOS LOS PRODUCTOS</button>
+        </div>
+      </section>
+
+      <section class="nosotros" id="nosotros" aria-labelledby="nosotros-title">
+        <div class="nosotros-inner">
+          <h2 id="nosotros-title">SOBRE NOSOTROS</h2>
+          <p>Desde 2024, redefiniendo el estilo urbano.<br>Cada gorra nace del detalle y la identidad.</p>
+        </div>
+      </section>
+
+    </div>
+
+    <!-- PÁGINA: COLECCIÓN -->
+    <div id="page-coleccion" style="display:none">
+      <section class="products-section" aria-labelledby="coleccion-title">
+        <div class="products-header">
+          <h2 class="products-title" id="coleccion-title">COLECCIÓN</h2>
+          <span class="products-count" id="coleccionCount"></span>
+        </div>
+        <ul class="products-grid" id="coleccionGrid" role="list"></ul>
+      </section>
+    </div>
+
+  </main>
+
+  <footer>
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <p class="footer-logo">JS <span>STUDIOS</span></p>
+      <p class="footer-desc">Gorras premium para quienes viven el streetwear. Calidad, estilo y actitud en cada drop.</p>
+    </div>
+    <div class="footer-nav">
+      <p class="footer-nav-title">Navegación</p>
+      <ul>
+        <li><a href="#" onclick="showPage('home')">Inicio</a></li>
+        <li><a href="#" onclick="showPage('coleccion')">Shop</a></li>
+        <li>
+          <a href="#">Contacto</a>
+          <p class="footer-contact">+54 9 11 6248-3790</p>
+        </li>
+      </ul>
+    </div>
+    <div class="footer-social">
+      <p class="footer-nav-title">Seguinos</p>
+      <ul>
+        <li><a href="https://instagram.com/jsstudios.ar" target="_blank">Instagram</a> <span class="footer-handle">@jsstudios.ar</span></li>
+        <li><a href="https://tiktok.com/@jsstudios.ar" target="_blank">TikTok</a> <span class="footer-handle">@jsstudios.ar</span></li>
+        <li><a href="https://x.com/jsstudios_ar" target="_blank">X</a> <span class="footer-handle">@jsstudios_ar</span></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p>© 2026 JS Studios. Todos los derechos reservados.</p>
+  </div>
+</footer>
+
+  <!-- CARRITO PANEL -->
+  <div class="cart-overlay" id="cartOverlay" role="presentation" aria-hidden="true">
+    <div class="cart-panel" role="dialog" aria-modal="true" aria-label="Carrito de compras">
+      <div class="cart-panel-header">
+        <h2 class="cart-panel-title">CARRITO</h2>
+        <button class="close-btn" id="closeCart" aria-label="Cerrar carrito">✕</button>
+      </div>
+      <div class="cart-body" id="cartBody">
+        <p class="cart-empty">Tu carrito está vacío.</p>
+      </div>
+      <div class="cart-footer" id="cartFooter" style="display:none">
+        <div class="cart-total">
+          <span class="cart-total-label">Total</span>
+          <span class="cart-total-amount" id="cartTotal">$0</span>
+        </div>
+        <button class="checkout-btn">FINALIZAR COMPRA</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHECKOUT MODAL -->
+  <div class="checkout-overlay" id="checkoutOverlay" role="presentation" aria-hidden="true">
+    <div class="checkout-modal" role="dialog" aria-modal="true" aria-label="Finalizar compra">
+      <div class="checkout-header">
+        <h2 class="checkout-title">FINALIZAR COMPRA</h2>
+        <button class="close-btn" id="closeCheckout" aria-label="Cerrar checkout">✕</button>
+      </div>
+
+      <div class="checkout-body" id="checkoutBody">
+        <div class="checkout-summary">
+          <p class="checkout-section-title">RESUMEN DEL PEDIDO</p>
+          <ul class="checkout-items" id="checkoutItems"></ul>
+          <div class="checkout-total-row">
+            <span class="checkout-total-label">TOTAL</span>
+            <span class="checkout-total-amount" id="checkoutTotal"></span>
+          </div>
+        </div>
+
+        <form class="checkout-form" id="checkoutForm" novalidate>
+          <p class="checkout-section-title">TUS DATOS</p>
+          <div class="form-group">
+            <label for="checkout-name">Nombre</label>
+            <input id="checkout-name" type="text" placeholder="Juan García" />
+            <span class="form-error" id="error-name"></span>
+          </div>
+          <div class="form-group">
+            <label for="checkout-email">Email</label>
+            <input id="checkout-email" type="email" placeholder="juan@email.com" />
+            <span class="form-error" id="error-email"></span>
+          </div>
+          <div class="form-group">
+            <label for="checkout-address">Dirección</label>
+            <input id="checkout-address" type="text" placeholder="Av. Corrientes 1234, CABA" />
+            <span class="form-error" id="error-address"></span>
+          </div>
+          <button class="confirm-btn" id="confirmBtn" type="submit">CONFIRMAR COMPRA</button>
+        </form>
+      </div>
+
+      <div class="checkout-success" id="checkoutSuccess">
+        <div class="success-icon" aria-hidden="true">✓</div>
+        <h3>¡Compra realizada con éxito!</h3>
+        <p>Gracias por tu compra. Recibirás un email con los detalles.</p>
+        <button class="confirm-btn" id="closeSuccess">VOLVER A LA TIENDA</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- VISTA INDIVIDUAL DE PRODUCTO -->
+  <div class="product-view-overlay" id="productViewOverlay" role="presentation" aria-hidden="true">
+    <div class="product-view" role="dialog" aria-modal="true" aria-labelledby="productViewName">
+      <button class="close-btn product-view-close" id="closeProductView" aria-label="Cerrar">✕</button>
+      <div class="product-view-img-wrap">
+        <img id="productViewImg" src="" alt="" />
+        <span class="card-tag" id="productViewTag" style="display:none"></span>
+      </div>
+      <div class="product-view-body">
+        <p class="product-view-name" id="productViewName"></p>
+        <p class="product-view-price" id="productViewPrice"></p>
+        <p class="product-view-size" id="productViewSize"></p>
+        <div class="product-view-qty-wrap">
+          <button class="qty-btn" id="productViewMinus" aria-label="Quitar uno">−</button>
+          <span class="qty-value" id="productViewQtyDisplay">1</span>
+          <button class="qty-btn" id="productViewPlus" aria-label="Agregar uno">+</button>
+        </div>
+        <button class="add-btn product-view-add" id="productViewAddBtn">+ AGREGAR AL CARRITO</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
