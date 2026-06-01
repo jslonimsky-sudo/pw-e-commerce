@@ -19,7 +19,7 @@ export default function AuthNav() {
       {user ? (
         <>
           <span className="auth-bar-email">{user.email}</span>
-          {user.email === 'jslonimsky@itba.edu.ar' && (
+          {user.email === 'joaquinslonimskyy@gmail.com' && (
             <a href="/admin" className="admin-link">Admin</a>
           )}
           <a href="/mis-ordenes" className="mis-ordenes-link">Mis Órdenes</a>
