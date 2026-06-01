@@ -1,12 +1,13 @@
 import { formatPrice } from '../lib/formatPrice';
 
 export default function ProductCard({ product, onAddToCart, onProductClick }) {
+  const imgSrc = product.image_url || '/img/negra.jpg';
   return (
     <li>
       <article className="card" onClick={() => onProductClick(product.id)} style={{ cursor: 'pointer' }}>
         <div className="card-img-wrap">
-          <img src={product.image} alt={`Gorra ${product.name}`} loading="lazy" />
-          {product.tag && <span className="card-tag">{product.tag}</span>}
+          <img src={imgSrc} alt={`Gorra ${product.name}`} loading="lazy" />
+          {product.category && <span className="card-tag">{product.category}</span>}
         </div>
         <div className="card-body">
           <div>

@@ -7,9 +7,9 @@ export default function Header({ cartCount, onCartOpen, onNavigate }) {
         </a>
         <nav aria-label="Navegación principal">
           <ul>
-            <li><a href="#" onClick={(e) => { e.preventDefault(); onNavigate('coleccion'); }}>Colección</a></li>
-            <li><a href="#" onClick={(e) => { e.preventDefault(); onNavigate('home'); }}>Destacados</a></li>
-            <li><a href="#nosotros" onClick={(e) => e.preventDefault()}>Nosotros</a></li>
+            <li><a href="#coleccion" onClick={(e) => { e.preventDefault(); onNavigate('coleccion'); }}>Colección</a></li>
+            <li><a href="#destacados" onClick={(e) => { e.preventDefault(); onNavigate('home', 'destacados'); }}>Destacados</a></li>
+            <li><a href="#nosotros" onClick={(e) => { e.preventDefault(); onNavigate('home', 'nosotros'); }}>Nosotros</a></li>
           </ul>
         </nav>
         <button className="cart-btn" onClick={onCartOpen} aria-label="Ver carrito">

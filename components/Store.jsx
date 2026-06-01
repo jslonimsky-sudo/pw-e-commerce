@@ -7,7 +7,9 @@ import ProductsSection from './ProductsSection';
 import CartPanel from './CartPanel';
 import CheckoutModal from './CheckoutModal';
 import ProductModal from './ProductModal';
+import ProductCard from './ProductCard';
 import Footer from './Footer';
+import { getProducts } from '../lib/api/products.js';
 
 export default function Store() {
   const [page, setPage] = useState('home');
@@ -16,15 +18,30 @@ export default function Store() {
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [products, setProducts] = useState([]);
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('todas');
 
   useEffect(() => {
     async function loadProducts() {
-      const res = await fetch('/products.json');
-      const data = await res.json();
-      setProducts(data);
+      try {
+        const data = await getProducts();
+        setProducts(data);
+      } catch {
+        setError('No se pudieron cargar los productos');
+      } finally {
+        setLoading(false);
+      }
     }
     loadProducts();
   }, []);
+
+  const filteredProducts = products.filter(product => {
+    const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCategory = selectedCategory === 'todas' || product.category === selectedCategory;
+    return matchesSearch && matchesCategory;
+  });
 
   const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
 
@@ -34,9 +51,16 @@ export default function Store() {
       : 'JS Studios — Colección 2026';
   }, [totalItems]);
 
-  function navigate(target) {
+  function navigate(target, sectionId) {
     setPage(target);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (sectionId) {
+      setTimeout(() => {
+        const el = document.getElementById(sectionId);
+        if (el) el.scrollIntoView({ behavior: 'smooth' });
+      }, 50);
+    } else {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   }
 
   function addToCart(productId) {
@@ -74,7 +98,9 @@ export default function Store() {
       />
 
       <main>
-        {page === 'home' && (
+        {loading && <div className="loading">Cargando productos...</div>}
+        {!loading && error && <div className="error">No se pudieron cargar los productos</div>}
+        {!loading && !error && page === 'home' && (
           <div id="page-home">
             <Hero onNavigate={navigate} />
             <ProductsSection
@@ -96,16 +122,51 @@ export default function Store() {
           </div>
         )}
 
-        {page === 'coleccion' && (
+        {!loading && !error && page === 'coleccion' && (
           <div id="page-coleccion">
-            <ProductsSection
-              id="coleccion"
-              title="COLECCIÓN"
-              count={`${products.length} MODELOS`}
-              products={products}
-              onAddToCart={addToCart}
-              onProductClick={openProduct}
-            />
+            <section className="products-section" id="coleccion" aria-labelledby="coleccion-title">
+              <div className="products-header">
+                <h2 className="products-title" id="coleccion-title">COLECCIÓN</h2>
+                <span className="products-count">{filteredProducts.length} MODELOS</span>
+              </div>
+              <div className="catalogo-filtros">
+                <input
+                  type="text"
+                  className="filtro-search"
+                  placeholder="Buscar gorras..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+                <div className="filtro-categorias">
+                  {['todas', 'clasicas', 'vintage', 'snapback', 'dad-hat', 'premium', 'trucker'].map(cat => (
+                    <button
+                      key={cat}
+                      className={selectedCategory === cat ? 'filtro-btn active' : 'filtro-btn'}
+                      onClick={() => setSelectedCategory(cat)}
+                    >
+                      {cat === 'todas' ? 'Todas' : cat.charAt(0).toUpperCase() + cat.slice(1)}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              {filteredProducts.length === 0 && (
+                <div className="catalogo-vacio">
+                  No se encontraron productos para tu búsqueda.
+                </div>
+              )}
+              {filteredProducts.length > 0 && (
+                <ul className="products-grid" role="list">
+                  {filteredProducts.map(product => (
+                    <ProductCard
+                      key={product.id}
+                      product={product}
+                      onAddToCart={addToCart}
+                      onProductClick={openProduct}
+                    />
+                  ))}
+                </ul>
+              )}
+            </section>
           </div>
         )}
       </main>

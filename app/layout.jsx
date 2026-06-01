@@ -1,4 +1,6 @@
 import './globals.css';
+import AuthNav from '../components/AuthNav';
+import UserProvider from '../context/UserContext';
 
 export const metadata = {
   title: 'JS Studios — Colección 2026',
@@ -13,7 +15,12 @@ export default function RootLayout({ children }) {
           rel="stylesheet"
         />
       </head>
-      <body>{children}</body>
+      <body>
+        <UserProvider>
+          <AuthNav />
+          {children}
+        </UserProvider>
+      </body>
     </html>
   );
 }

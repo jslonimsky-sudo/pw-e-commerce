@@ -17,6 +17,8 @@ export default function ProductModal({ product, isOpen, onClose, onAddToCart }) 
 
   if (!product) return null;
 
+  const imgSrc = product.image_url || '/img/negra.jpg';
+
   return (
     <div
       className={`product-modal-overlay${isOpen ? ' active' : ''}`}
@@ -28,8 +30,8 @@ export default function ProductModal({ product, isOpen, onClose, onAddToCart }) 
       <div className="product-modal" onClick={e => e.stopPropagation()}>
         <button className="product-modal-close close-btn" onClick={onClose} aria-label="Cerrar">✕</button>
         <div className="product-modal-img-wrap">
-          <img src={product.image} alt={`Gorra ${product.name}`} />
-          {product.tag && <span className="card-tag">{product.tag}</span>}
+          <img src={imgSrc} alt={`Gorra ${product.name}`} />
+          {product.category && <span className="card-tag">{product.category}</span>}
         </div>
         <div className="product-modal-body">
           <p className="product-modal-name">{product.name}</p>

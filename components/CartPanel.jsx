@@ -1,7 +1,53 @@
+'use client';
+
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { formatPrice } from '../lib/formatPrice';
+import { useUser } from '../context/UserContext';
+import { createOrder } from '../lib/api/orders';
 
 export default function CartPanel({ cart, isOpen, onClose, onChangeQty, onCheckout }) {
+  const { user } = useUser();
+  const router = useRouter();
+  const [ordering, setOrdering] = useState(false);
+  const [orderError, setOrderError] = useState(null);
+  const [orderSuccess, setOrderSuccess] = useState(false);
+
   const totalPrice = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+
+  async function handleCheckout() {
+    if (!user) {
+      router.push('/login');
+      return;
+    }
+
+    setOrdering(true);
+    setOrderError(null);
+
+    const items = cart.map(item => ({
+      product_id: item.id,
+      quantity: item.quantity,
+      price: item.price,
+    }));
+
+    const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+
+    const { error } = await createOrder({ userId: user.id, items, total });
+
+    setOrdering(false);
+
+    if (error) {
+      setOrderError('Hubo un error al procesar tu orden. Intentá de nuevo.');
+      return;
+    }
+
+    setOrderSuccess(true);
+    setTimeout(() => {
+      cart.forEach(item => onChangeQty(item.id, -item.quantity));
+      setOrderSuccess(false);
+      onClose();
+    }, 2000);
+  }
 
   return (
     <div
@@ -21,7 +67,7 @@ export default function CartPanel({ cart, isOpen, onClose, onChangeQty, onChecko
           ) : (
             cart.map(item => (
               <div key={item.id} className="cart-item">
-                <img src={item.image} alt={item.name} />
+                <img src={item.image_url || '/img/negra.jpg'} alt={item.name} />
                 <div className="cart-item-info">
                   <p className="cart-item-name">{item.name}</p>
                   <p className="cart-item-price">{formatPrice(item.price)} c/u</p>
@@ -41,7 +87,18 @@ export default function CartPanel({ cart, isOpen, onClose, onChangeQty, onChecko
               <span className="cart-total-label">Total</span>
               <span className="cart-total-amount">{formatPrice(totalPrice)}</span>
             </div>
-            <button className="checkout-btn" onClick={onCheckout}>FINALIZAR COMPRA</button>
+            {orderSuccess ? (
+              <div className="order-success">✓ ¡Orden creada exitosamente!</div>
+            ) : (
+              <button
+                className="checkout-btn"
+                onClick={handleCheckout}
+                disabled={ordering}
+              >
+                {ordering ? 'Procesando...' : 'FINALIZAR COMPRA'}
+              </button>
+            )}
+            {orderError && <div className="order-error">{orderError}</div>}
           </div>
         )}
       </div>
