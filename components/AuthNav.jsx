@@ -19,7 +19,9 @@ export default function AuthNav() {
       {user ? (
         <>
           <span className="auth-bar-email">{user.email}</span>
-          <a href="/admin" className="admin-link">Admin</a>
+          {user.email === 'jslonimsky@itba.edu.ar' && (
+            <a href="/admin" className="admin-link">Admin</a>
+          )}
           <a href="/mis-ordenes" className="mis-ordenes-link">Mis Órdenes</a>
           <button className="auth-bar-btn" onClick={handleSignOut}>
             Cerrar sesión
