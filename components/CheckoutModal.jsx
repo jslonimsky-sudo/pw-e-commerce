@@ -2,14 +2,15 @@
 
 import { useState } from 'react';
 import { formatPrice } from '../lib/formatPrice';
-import { supabase } from '../lib/supabase';
+import { useUser } from '../context/UserContext';
+import { createOrder } from '../lib/api/orders';
 
 export default function CheckoutModal({ cart, isOpen, onClose, onSuccess }) {
+  const { user } = useUser();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
-  const [apiError, setApiError] = useState('');
 
   const totalPrice = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
@@ -21,74 +22,66 @@ export default function CheckoutModal({ cart, isOpen, onClose, onSuccess }) {
     return errs;
   }
 
-  async function handleConfirm(e) {
-    e.preventDefault();
+  async function handleConfirm() {
     const errs = validate();
     if (Object.keys(errs).length > 0) { setErrors(errs); return; }
 
+    if (!user) {
+      alert('Debés iniciar sesión para comprar');
+      return;
+    }
+
     setLoading(true);
-    setApiError('');
+    console.log('1. Iniciando checkout', { cart, user });
 
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        setApiError('Debés iniciar sesión para continuar.');
-        setLoading(false);
-        return;
-      }
-
-      const items = cart.map(item => ({
-        product_id: item.id,
-        quantity: item.quantity,
-        price: item.price,
-      }));
-
-      const orderRes = await fetch('/api/orders', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: session.user.id, items, total: totalPrice }),
+      const { order, error } = await createOrder({
+        userId: user.id,
+        items: cart.map(item => ({ product_id: item.id, quantity: item.quantity, price: item.price })),
+        total: totalPrice,
       });
 
-      if (!orderRes.ok) {
-        setApiError('Error al crear la orden. Intentá de nuevo.');
+      if (error || !order) {
+        console.error('Error creando orden:', error);
+        alert('Error al crear la orden');
         setLoading(false);
         return;
       }
 
-      const { order } = await orderRes.json();
+      console.log('2. Orden creada:', order.id);
+      console.log('3. Llamando a MP con items:', cart);
 
-      const mpItems = cart.map(item => ({
-        title: item.name,
-        quantity: item.quantity,
-        unit_price: item.price,
-      }));
-
-      const prefRes = await fetch('/api/create-preference', {
+      const response = await fetch('/api/create-preference', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ items: mpItems, userId: session.user.id, orderId: order.id }),
+        body: JSON.stringify({
+          items: cart.map(item => ({
+            title: item.name,
+            quantity: item.quantity,
+            unit_price: Number(item.price),
+          })),
+          userId: user.id,
+          orderId: order.id,
+        }),
       });
 
-      if (!prefRes.ok) {
-        setApiError('Error al iniciar el pago. Intentá de nuevo.');
+      const data = await response.json();
+      console.log('4. Respuesta MP:', data);
+
+      const redirectUrl = data.sandbox_init_point || data.init_point;
+      console.log('5. Redirigiendo a:', redirectUrl);
+
+      if (redirectUrl) {
+        onSuccess();
+        window.location.href = redirectUrl;
+      } else {
+        console.error('No hay URL de redirect en:', data);
+        alert('Error al obtener link de pago: ' + JSON.stringify(data));
         setLoading(false);
-        return;
       }
-
-      const { init_point } = await prefRes.json();
-
-      if (!init_point) {
-        console.error('init_point is missing from MP response');
-        setApiError('Error al obtener el link de pago. Intentá de nuevo.');
-        setLoading(false);
-        return;
-      }
-
-      console.log('Redirecting to MP:', init_point);
-      onSuccess();
-      window.location.href = init_point;
-    } catch {
-      setApiError('Ocurrió un error inesperado. Intentá de nuevo.');
+    } catch (err) {
+      console.error('Error en checkout:', err);
+      alert('Error: ' + err.message);
       setLoading(false);
     }
   }
@@ -98,7 +91,6 @@ export default function CheckoutModal({ cart, isOpen, onClose, onSuccess }) {
     setName('');
     setEmail('');
     setErrors({});
-    setApiError('');
     onClose();
   }
 
@@ -133,7 +125,7 @@ export default function CheckoutModal({ cart, isOpen, onClose, onSuccess }) {
             </div>
           </div>
 
-          <form className="checkout-form" onSubmit={handleConfirm} noValidate>
+          <div className="checkout-form">
             <p className="checkout-section-title">TUS DATOS</p>
             <div className="form-group">
               <label htmlFor="checkout-name">Nombre</label>
@@ -161,11 +153,15 @@ export default function CheckoutModal({ cart, isOpen, onClose, onSuccess }) {
               />
               <span className="form-error">{errors.email}</span>
             </div>
-            {apiError && <p className="form-error">{apiError}</p>}
-            <button className="confirm-btn" type="submit" disabled={loading}>
+            <button
+              className="confirm-btn"
+              type="button"
+              onClick={handleConfirm}
+              disabled={loading}
+            >
               {loading ? 'PROCESANDO...' : 'CONFIRMAR COMPRA'}
             </button>
-          </form>
+          </div>
         </div>
       </div>
     </div>

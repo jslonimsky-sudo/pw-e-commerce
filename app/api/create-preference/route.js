@@ -5,7 +5,10 @@ const client = new MercadoPagoConfig({ accessToken: process.env.MERCADOPAGO_ACCE
 
 export async function POST(request) {
   try {
-    const { items, userId, orderId } = await request.json();
+    const body = await request.json();
+    console.log('API llamada con:', body);
+
+    const { items, userId, orderId } = body;
 
     if (!items || !userId || !orderId) {
       return NextResponse.json({ error: 'Faltan campos requeridos' }, { status: 400 });
@@ -33,9 +36,11 @@ export async function POST(request) {
       },
     });
 
-    const init_point = response.sandbox_init_point || response.init_point;
-    console.log('MP preference created. init_point:', init_point);
-    return NextResponse.json({ init_point });
+    console.log('Preferencia:', response);
+    return NextResponse.json({
+      init_point: response.init_point,
+      sandbox_init_point: response.sandbox_init_point,
+    });
   } catch (error) {
     console.error('Error creating MP preference:', error);
     return NextResponse.json({ error: 'Error al crear la preferencia de pago' }, { status: 500 });
