@@ -33,7 +33,9 @@ export async function POST(request) {
       },
     });
 
-    return NextResponse.json({ init_point: response.init_point });
+    const init_point = response.sandbox_init_point || response.init_point;
+    console.log('MP preference created. init_point:', init_point);
+    return NextResponse.json({ init_point });
   } catch (error) {
     console.error('Error creating MP preference:', error);
     return NextResponse.json({ error: 'Error al crear la preferencia de pago' }, { status: 500 });

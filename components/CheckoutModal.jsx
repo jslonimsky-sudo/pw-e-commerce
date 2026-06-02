@@ -77,6 +77,14 @@ export default function CheckoutModal({ cart, isOpen, onClose, onSuccess }) {
 
       const { init_point } = await prefRes.json();
 
+      if (!init_point) {
+        console.error('init_point is missing from MP response');
+        setApiError('Error al obtener el link de pago. Intentá de nuevo.');
+        setLoading(false);
+        return;
+      }
+
+      console.log('Redirecting to MP:', init_point);
       onSuccess();
       window.location.href = init_point;
     } catch {
