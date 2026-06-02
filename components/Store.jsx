@@ -5,7 +5,6 @@ import Header from './Header';
 import Hero from './Hero';
 import ProductsSection from './ProductsSection';
 import CartPanel from './CartPanel';
-import CheckoutModal from './CheckoutModal';
 import ProductModal from './ProductModal';
 import ProductCard from './ProductCard';
 import Footer from './Footer';
@@ -15,7 +14,6 @@ export default function Store() {
   const [page, setPage] = useState('home');
   const [cart, setCart] = useState([]);
   const [cartOpen, setCartOpen] = useState(false);
-  const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [products, setProducts] = useState([]);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -178,14 +176,6 @@ export default function Store() {
         isOpen={cartOpen}
         onClose={() => setCartOpen(false)}
         onChangeQty={changeQty}
-        onCheckout={() => { setCartOpen(false); setCheckoutOpen(true); }}
-      />
-
-      <CheckoutModal
-        cart={cart}
-        isOpen={checkoutOpen}
-        onClose={() => setCheckoutOpen(false)}
-        onSuccess={() => setCart([])}
       />
 
       <ProductModal
