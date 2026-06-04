@@ -1,11 +1,13 @@
 export default function PagoFallido() {
   return (
-    <div className="pago-resultado">
-      <div className="pago-resultado-icon pago-fallido-icon">✕</div>
-      <h1>El pago no pudo procesarse.</h1>
-      <p>Podés intentarlo de nuevo.</p>
-      <div className="pago-resultado-links">
-        <a href="/" className="btn-pago-resultado">Volver a la tienda</a>
+    <div className="pago-resultado-page">
+      <div className="pago-resultado-card">
+        <div className="pago-resultado-x">✕</div>
+        <h1>Pago rechazado</h1>
+        <p>El pago no pudo procesarse. Podés intentarlo de nuevo.</p>
+        <div className="pago-resultado-btns">
+          <a href="/" className="btn-pago">Volver a la tienda</a>
+        </div>
       </div>
     </div>
   );

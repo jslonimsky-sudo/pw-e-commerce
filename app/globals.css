@@ -1190,3 +1190,103 @@ footer {
   font-size: 0.95rem;
   grid-column: 1 / -1;
 }
+/* Pago resultado pages */
+.pago-resultado-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg);
+}
+.pago-resultado-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 16px;
+  padding: 56px 48px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  max-width: 420px;
+  width: 90%;
+}
+.pago-resultado-check {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: #1a7a3c;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  margin-bottom: 8px;
+}
+.pago-resultado-x {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: #b91c1c;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  margin-bottom: 8px;
+}
+.pago-resultado-clock {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: #b45309;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  margin-bottom: 8px;
+}
+.pago-resultado-card h1 {
+  font-family: var(--font-title);
+  font-size: 2rem;
+  letter-spacing: 0.04em;
+  color: var(--text);
+  margin: 0;
+}
+.pago-resultado-card p {
+  color: var(--muted);
+  font-size: 0.92rem;
+  line-height: 1.6;
+  margin: 0;
+}
+.pago-resultado-btns {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  margin-top: 8px;
+}
+.btn-pago {
+  display: block;
+  background: var(--text);
+  color: var(--bg);
+  padding: 13px 24px;
+  border: none;
+  border-radius: 4px;
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-decoration: none;
+  text-align: center;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+.btn-pago:hover { opacity: 0.8; }
+.btn-pago-outline {
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+.btn-pago-outline:hover { background: var(--surface); opacity: 1; }
