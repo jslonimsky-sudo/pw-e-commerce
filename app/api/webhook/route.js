@@ -1,5 +1,10 @@
 import { NextResponse } from 'next/server';
-import { updateOrderStatus } from '../../../lib/api/orders';
+import { createClient } from '@supabase/supabase-js';
+
+const supabaseAdmin = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY
+);
 
 export async function POST(request) {
   try {
@@ -20,9 +25,9 @@ export async function POST(request) {
 
       if (orderId) {
         if (payment.status === 'approved') {
-          await updateOrderStatus(orderId, 'approved');
+          await supabaseAdmin.from('orders').update({ status: 'approved' }).eq('id', orderId);
         } else if (payment.status === 'rejected') {
-          await updateOrderStatus(orderId, 'rejected');
+          await supabaseAdmin.from('orders').update({ status: 'rejected' }).eq('id', orderId);
         }
       }
     }
