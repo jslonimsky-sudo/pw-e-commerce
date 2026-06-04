@@ -26,6 +26,18 @@ export async function POST(request) {
       if (orderId) {
         if (payment.status === 'approved') {
           await supabaseAdmin.from('orders').update({ status: 'approved' }).eq('id', orderId);
+
+          const { data: items } = await supabaseAdmin
+            .from('order_items')
+            .select('product_id, quantity')
+            .eq('order_id', orderId);
+
+          for (const item of items || []) {
+            await supabaseAdmin.rpc('decrement_stock', {
+              product_id: item.product_id,
+              amount: item.quantity,
+            });
+          }
         } else if (payment.status === 'rejected') {
           await supabaseAdmin.from('orders').update({ status: 'rejected' }).eq('id', orderId);
         }
