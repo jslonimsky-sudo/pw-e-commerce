@@ -9,16 +9,20 @@ export default function CheckoutModal({ cart, isOpen, onClose, onSuccess }) {
   const { user } = useUser();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [address, setAddress] = useState('');
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
 
-  const totalPrice = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const SHIPPING_COST = 2500;
+  const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const totalPrice = subtotal + SHIPPING_COST;
 
   function validate() {
     const errs = {};
     if (!name.trim()) errs.name = 'El nombre es requerido';
     if (!email.trim()) errs.email = 'El email es requerido';
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errs.email = 'Email inválido';
+    if (!address.trim()) errs.address = 'La dirección es requerida';
     return errs;
   }
 
@@ -55,11 +59,14 @@ export default function CheckoutModal({ cart, isOpen, onClose, onSuccess }) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          items: cart.map(item => ({
-            title: item.name,
-            quantity: item.quantity,
-            unit_price: Number(item.price),
-          })),
+          items: [
+            ...cart.map(item => ({
+              title: item.name,
+              quantity: item.quantity,
+              unit_price: Number(item.price),
+            })),
+            { title: 'Envío', quantity: 1, unit_price: SHIPPING_COST },
+          ],
           userId: user.id,
           orderId: order.id,
         }),
@@ -90,6 +97,7 @@ export default function CheckoutModal({ cart, isOpen, onClose, onSuccess }) {
     if (loading) return;
     setName('');
     setEmail('');
+    setAddress('');
     setErrors({});
     onClose();
   }
@@ -119,6 +127,10 @@ export default function CheckoutModal({ cart, isOpen, onClose, onSuccess }) {
                 </li>
               ))}
             </ul>
+            <div className="checkout-total-row checkout-shipping-row">
+              <span className="checkout-total-label">ENVÍO</span>
+              <span className="checkout-total-amount">{formatPrice(SHIPPING_COST)}</span>
+            </div>
             <div className="checkout-total-row">
               <span className="checkout-total-label">TOTAL</span>
               <span className="checkout-total-amount">{formatPrice(totalPrice)}</span>
@@ -152,6 +164,19 @@ export default function CheckoutModal({ cart, isOpen, onClose, onSuccess }) {
                 disabled={loading}
               />
               <span className="form-error">{errors.email}</span>
+            </div>
+            <div className="form-group">
+              <label htmlFor="checkout-address">Dirección</label>
+              <input
+                id="checkout-address"
+                type="text"
+                placeholder="Av. Corrientes 1234, CABA"
+                value={address}
+                onChange={(e) => { setAddress(e.target.value); setErrors(prev => ({ ...prev, address: '' })); }}
+                className={errors.address ? 'input-error' : ''}
+                disabled={loading}
+              />
+              <span className="form-error">{errors.address}</span>
             </div>
             <button
               className="confirm-btn"
