@@ -71,6 +71,7 @@ export async function POST(request) {
       if (!moResponse.ok) return NextResponse.json({ ok: true });
 
       const merchantOrder = await moResponse.json();
+      console.log('[WEBHOOK DEBUG] merchantOrder completo:', JSON.stringify(merchantOrder));
       const lastPayment = merchantOrder.payments?.[merchantOrder.payments.length - 1];
       console.log(
         '[WEBHOOK DEBUG] merchantOrder.external_reference:', merchantOrder.external_reference,
