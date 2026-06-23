@@ -71,6 +71,7 @@ export default function MisOrdenesPage() {
                   <span className={`orden-status status-${order.status}`}>
                     {order.status === 'pending' && 'Pendiente'}
                     {order.status === 'approved' && 'Aprobada'}
+                    {order.status === 'rejected' && 'Rechazada'}
                     {order.status === 'failed' && 'Fallida'}
                   </span>
                   <span className="orden-total">

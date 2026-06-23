@@ -437,6 +437,7 @@ export default function AdminPage() {
                         >
                           <option value="pending">Pendiente</option>
                           <option value="approved">Aprobada</option>
+                          <option value="rejected">Rechazada</option>
                           <option value="failed">Fallida</option>
                           <option value="cancelled">Cancelada</option>
                         </select>
