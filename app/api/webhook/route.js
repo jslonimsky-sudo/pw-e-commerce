@@ -71,15 +71,30 @@ export async function POST(request) {
       if (!moResponse.ok) return NextResponse.json({ ok: true });
 
       const merchantOrder = await moResponse.json();
-      console.log('[WEBHOOK DEBUG] merchantOrder completo:', JSON.stringify(merchantOrder));
-      const lastPayment = merchantOrder.payments?.[merchantOrder.payments.length - 1];
-      console.log(
-        '[WEBHOOK DEBUG] merchantOrder.external_reference:', merchantOrder.external_reference,
-        'lastPayment.status:', lastPayment?.status
-      );
+      console.log('[WEBHOOK DEBUG] merchantOrder.external_reference:', merchantOrder.external_reference);
 
       orderId = merchantOrder.external_reference;
-      paymentStatus = lastPayment?.status;
+
+      if (orderId) {
+        const searchResponse = await fetch(
+          `https://api.mercadopago.com/v1/payments/search?external_reference=${orderId}`,
+          { headers: { Authorization: `Bearer ${process.env.MERCADOPAGO_ACCESS_TOKEN}` } }
+        );
+        console.log('[WEBHOOK DEBUG] searchResponse.ok:', searchResponse.ok, 'searchResponse.status:', searchResponse.status);
+
+        if (searchResponse.ok) {
+          const searchResult = await searchResponse.json();
+          console.log('[WEBHOOK DEBUG] payments/search results:', JSON.stringify(searchResult));
+
+          const results = searchResult.results || [];
+          if (results.length > 0) {
+            const mostRecent = [...results].sort(
+              (a, b) => new Date(b.date_created) - new Date(a.date_created)
+            )[0];
+            paymentStatus = mostRecent.status;
+          }
+        }
+      }
     }
 
     console.log('[WEBHOOK DEBUG] orderId:', orderId);
