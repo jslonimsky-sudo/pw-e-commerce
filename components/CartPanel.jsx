@@ -49,15 +49,20 @@ export default function CartPanel({ cart, isOpen, onClose, onChangeQty }) {
                     <p className="cart-item-name">{item.name}</p>
                     <p className="cart-item-price">{formatPrice(item.price)} c/u</p>
                   </div>
-                  <div className="cart-item-controls">
-                    <button className="qty-btn" onClick={() => onChangeQty(item.id, -1)} aria-label="Quitar uno">−</button>
-                    <span className="qty-value">{item.quantity}</span>
-                    <button
-                      className="qty-btn"
-                      onClick={() => onChangeQty(item.id, 1)}
-                      aria-label="Agregar uno"
-                      disabled={item.quantity >= item.stock}
-                    >+</button>
+                  <div className="cart-item-qty-wrap">
+                    <div className="cart-item-controls">
+                      <button className="qty-btn" onClick={() => onChangeQty(item.id, -1)} aria-label="Quitar uno">−</button>
+                      <span className="qty-value">{item.quantity}</span>
+                      <button
+                        className="qty-btn"
+                        onClick={() => onChangeQty(item.id, 1)}
+                        aria-label="Agregar uno"
+                        disabled={item.quantity >= item.stock}
+                      >+</button>
+                    </div>
+                    {item.quantity >= item.stock && (
+                      <span className="qty-limit-msg">Stock máximo disponible</span>
+                    )}
                   </div>
                 </div>
               ))
