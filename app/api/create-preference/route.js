@@ -7,7 +7,6 @@ const client = new MercadoPagoConfig({ accessToken: process.env.MERCADOPAGO_ACCE
 export async function POST(request) {
   try {
     const body = await request.json();
-    console.log('API llamada con:', body);
 
     const { items, userId, orderId } = body;
 
@@ -71,7 +70,6 @@ export async function POST(request) {
       },
     });
 
-    console.log('Preferencia:', response);
     return NextResponse.json({
       init_point: response.init_point,
       sandbox_init_point: response.sandbox_init_point,

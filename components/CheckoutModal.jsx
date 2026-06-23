@@ -36,7 +36,6 @@ export default function CheckoutModal({ cart, isOpen, onClose, onSuccess }) {
     }
 
     setLoading(true);
-    console.log('1. Iniciando checkout', { cart, user });
 
     try {
       const { order, error } = await createOrder({
@@ -51,9 +50,6 @@ export default function CheckoutModal({ cart, isOpen, onClose, onSuccess }) {
         setLoading(false);
         return;
       }
-
-      console.log('2. Orden creada:', order.id);
-      console.log('3. Llamando a MP con items:', cart);
 
       const response = await fetch('/api/create-preference', {
         method: 'POST',
@@ -74,7 +70,6 @@ export default function CheckoutModal({ cart, isOpen, onClose, onSuccess }) {
       });
 
       const data = await response.json();
-      console.log('4. Respuesta MP:', data);
 
       if (response.status === 409 && data.error === 'stock_insuficiente') {
         const detalle = data.items
@@ -86,7 +81,6 @@ export default function CheckoutModal({ cart, isOpen, onClose, onSuccess }) {
       }
 
       const redirectUrl = data.sandbox_init_point || data.init_point;
-      console.log('5. Redirigiendo a:', redirectUrl);
 
       if (redirectUrl) {
         onSuccess();
