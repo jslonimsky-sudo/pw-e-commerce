@@ -284,6 +284,7 @@ export default function AdminPage() {
             </form>
           )}
 
+          <div className="admin-table-wrapper">
           <table className="admin-table">
             <thead>
               <tr>
@@ -400,6 +401,7 @@ export default function AdminPage() {
               ))}
             </tbody>
           </table>
+          </div>
         </div>
       )}
 
@@ -408,6 +410,7 @@ export default function AdminPage() {
           {orders.length === 0 ? (
             <p className="admin-empty">No hay órdenes registradas.</p>
           ) : (
+            <div className="admin-table-wrapper">
             <table className="admin-table">
               <thead>
                 <tr>
@@ -448,6 +451,7 @@ export default function AdminPage() {
                 ))}
               </tbody>
             </table>
+            </div>
           )}
         </div>
       )}
