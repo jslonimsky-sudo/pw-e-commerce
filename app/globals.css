@@ -60,6 +60,13 @@ nav a:hover { color: var(--text); }
 .header-right {
   display: flex; align-items: center;
   flex-shrink: 0;
+  gap: 14px;
+}
+.menu-toggle {
+  display: none;
+  background: transparent; border: none; cursor: pointer;
+  font-size: 1.2rem; line-height: 1; color: var(--text);
+  padding: 4px 2px;
 }
 .cart-btn {
   display: flex; align-items: center; gap: 6px;
@@ -241,6 +248,7 @@ nav a:hover { color: var(--text); }
   transition: background 0.2s; font-weight: 600;
 }
 .qty-btn:hover { background: var(--surface); }
+.qty-btn:disabled { opacity: 0.35; cursor: not-allowed; background: var(--bg); }
 .qty-value {
   width: 28px; height: 28px;
   display: flex; align-items: center; justify-content: center;
@@ -460,7 +468,23 @@ footer {
   .footer-brand { grid-column: 1 / -1; }
 }
 @media (max-width: 640px) {
-  nav ul { display: none; }
+  .menu-toggle { display: inline-flex; align-items: center; justify-content: center; }
+  nav {
+    position: fixed;
+    top: 52px; left: 0; right: 0;
+    transform: none;
+  }
+  nav ul {
+    display: none;
+    flex-direction: column;
+    gap: 0;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+    padding: 8px 32px 16px;
+  }
+  nav.nav-open ul { display: flex; }
+  nav ul li { padding: 10px 0; border-top: 1px solid var(--border); }
+  nav ul li:first-child { border-top: none; }
   .cart-panel { max-width: 100%; }
   .footer-inner { grid-template-columns: 1fr; }
 }
