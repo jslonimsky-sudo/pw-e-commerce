@@ -2,9 +2,26 @@ import { formatPrice } from '../lib/formatPrice';
 
 export default function ProductCard({ product, onAddToCart, onProductClick }) {
   const imgSrc = product.image_url || '/img/negra.jpg';
+
+  function handleKeyDown(e) {
+    if (e.target !== e.currentTarget) return;
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      onProductClick(product.id);
+    }
+  }
+
   return (
     <li>
-      <article className="card" onClick={() => onProductClick(product.id)} style={{ cursor: 'pointer' }}>
+      <article
+        className="card"
+        onClick={() => onProductClick(product.id)}
+        onKeyDown={handleKeyDown}
+        tabIndex={0}
+        role="button"
+        aria-label={`Ver detalle de ${product.name}`}
+        style={{ cursor: 'pointer' }}
+      >
         <div className="card-img-wrap">
           <img src={imgSrc} alt={`Gorra ${product.name}`} loading="lazy" />
           {product.category && <span className="card-tag">{product.category}</span>}
