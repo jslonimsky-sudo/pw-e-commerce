@@ -6,66 +6,120 @@ const supabaseAdmin = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
+async function fetchPaymentByPaymentId(paymentId) {
+  const mpResponse = await fetch(`https://api.mercadopago.com/v1/payments/${paymentId}`, {
+    headers: { Authorization: `Bearer ${process.env.MERCADOPAGO_ACCESS_TOKEN}` },
+  });
+  console.log('[WEBHOOK DEBUG] mpResponse.ok:', mpResponse.ok, 'mpResponse.status:', mpResponse.status);
+
+  if (!mpResponse.ok) return null;
+
+  const payment = await mpResponse.json();
+  console.log('[WEBHOOK DEBUG] payment.status:', payment.status, 'payment.external_reference:', payment.external_reference);
+
+  return { orderId: payment.external_reference, paymentStatus: payment.status };
+}
+
 export async function POST(request) {
   try {
-    const body = await request.json();
+    const { searchParams } = new URL(request.url);
+    const topic = searchParams.get('topic');
+    const queryId = searchParams.get('id');
 
-    if (body.type === 'payment') {
+    let body = null;
+    try {
+      body = await request.json();
+    } catch {
+      body = null;
+    }
+
+    console.log(
+      '[WEBHOOK DEBUG] formato detectado:',
+      body?.type ? 'JSON body' : (topic ? 'query params' : 'desconocido'),
+      '- topic/type:', body?.type || topic
+    );
+
+    let orderId = null;
+    let paymentStatus = null;
+
+    if (body?.type === 'payment') {
       const paymentId = body.data?.id;
       console.log('[WEBHOOK DEBUG] paymentId:', paymentId);
       if (!paymentId) return NextResponse.json({ ok: true });
 
-      const mpResponse = await fetch(`https://api.mercadopago.com/v1/payments/${paymentId}`, {
+      const result = await fetchPaymentByPaymentId(paymentId);
+      if (!result) return NextResponse.json({ ok: true });
+      ({ orderId, paymentStatus } = result);
+    } else if (topic === 'payment') {
+      const paymentId = queryId;
+      console.log('[WEBHOOK DEBUG] paymentId:', paymentId);
+      if (!paymentId) return NextResponse.json({ ok: true });
+
+      const result = await fetchPaymentByPaymentId(paymentId);
+      if (!result) return NextResponse.json({ ok: true });
+      ({ orderId, paymentStatus } = result);
+    } else if (topic === 'merchant_order') {
+      const merchantOrderId = queryId;
+      console.log('[WEBHOOK DEBUG] merchantOrderId:', merchantOrderId);
+      if (!merchantOrderId) return NextResponse.json({ ok: true });
+
+      const moResponse = await fetch(`https://api.mercadopago.com/merchant_orders/${merchantOrderId}`, {
         headers: { Authorization: `Bearer ${process.env.MERCADOPAGO_ACCESS_TOKEN}` },
       });
-      console.log('[WEBHOOK DEBUG] mpResponse.ok:', mpResponse.ok, 'mpResponse.status:', mpResponse.status);
+      console.log('[WEBHOOK DEBUG] moResponse.ok:', moResponse.ok, 'moResponse.status:', moResponse.status);
 
-      if (!mpResponse.ok) return NextResponse.json({ ok: true });
+      if (!moResponse.ok) return NextResponse.json({ ok: true });
 
-      const payment = await mpResponse.json();
-      console.log('[WEBHOOK DEBUG] payment.status:', payment.status, 'payment.external_reference:', payment.external_reference);
+      const merchantOrder = await moResponse.json();
+      const lastPayment = merchantOrder.payments?.[merchantOrder.payments.length - 1];
+      console.log(
+        '[WEBHOOK DEBUG] merchantOrder.external_reference:', merchantOrder.external_reference,
+        'lastPayment.status:', lastPayment?.status
+      );
 
-      const orderId = payment.external_reference;
-      console.log('[WEBHOOK DEBUG] orderId:', orderId);
+      orderId = merchantOrder.external_reference;
+      paymentStatus = lastPayment?.status;
+    }
 
-      if (orderId) {
-        const { data: existingOrder, error: existingOrderError } = await supabaseAdmin
-          .from('orders')
-          .select('status')
-          .eq('id', orderId)
-          .single();
-        console.log('[WEBHOOK DEBUG] existingOrder:', existingOrder, 'existingOrderError:', existingOrderError);
+    console.log('[WEBHOOK DEBUG] orderId:', orderId);
 
-        if (payment.status === 'approved') {
-          if (existingOrder?.status !== 'approved') {
-            const { data: approvedUpdateData, error: approvedUpdateError } = await supabaseAdmin
-              .from('orders')
-              .update({ status: 'approved' })
-              .eq('id', orderId)
-              .select();
-            console.log('[WEBHOOK DEBUG] update approved -> data:', approvedUpdateData, 'error:', approvedUpdateError);
+    if (orderId) {
+      const { data: existingOrder, error: existingOrderError } = await supabaseAdmin
+        .from('orders')
+        .select('status')
+        .eq('id', orderId)
+        .single();
+      console.log('[WEBHOOK DEBUG] existingOrder:', existingOrder, 'existingOrderError:', existingOrderError);
 
-            const { data: items } = await supabaseAdmin
-              .from('order_items')
-              .select('product_id, quantity')
-              .eq('order_id', orderId);
+      if (paymentStatus === 'approved') {
+        if (existingOrder?.status !== 'approved') {
+          const { data: approvedUpdateData, error: approvedUpdateError } = await supabaseAdmin
+            .from('orders')
+            .update({ status: 'approved' })
+            .eq('id', orderId)
+            .select();
+          console.log('[WEBHOOK DEBUG] update approved -> data:', approvedUpdateData, 'error:', approvedUpdateError);
 
-            for (const item of items || []) {
-              await supabaseAdmin.rpc('decrement_stock', {
-                product_id: item.product_id,
-                amount: item.quantity,
-              });
-            }
+          const { data: items } = await supabaseAdmin
+            .from('order_items')
+            .select('product_id, quantity')
+            .eq('order_id', orderId);
+
+          for (const item of items || []) {
+            await supabaseAdmin.rpc('decrement_stock', {
+              product_id: item.product_id,
+              amount: item.quantity,
+            });
           }
-        } else if (payment.status === 'rejected') {
-          if (existingOrder?.status !== 'rejected') {
-            const { data: rejectedUpdateData, error: rejectedUpdateError } = await supabaseAdmin
-              .from('orders')
-              .update({ status: 'rejected' })
-              .eq('id', orderId)
-              .select();
-            console.log('[WEBHOOK DEBUG] update rejected -> data:', rejectedUpdateData, 'error:', rejectedUpdateError);
-          }
+        }
+      } else if (paymentStatus === 'rejected') {
+        if (existingOrder?.status !== 'rejected') {
+          const { data: rejectedUpdateData, error: rejectedUpdateError } = await supabaseAdmin
+            .from('orders')
+            .update({ status: 'rejected' })
+            .eq('id', orderId)
+            .select();
+          console.log('[WEBHOOK DEBUG] update rejected -> data:', rejectedUpdateData, 'error:', rejectedUpdateError);
         }
       }
     }
