@@ -61,6 +61,7 @@ export default function CheckoutModal({ cart, isOpen, onClose, onSuccess }) {
         body: JSON.stringify({
           items: [
             ...cart.map(item => ({
+              product_id: item.id,
               title: item.name,
               quantity: item.quantity,
               unit_price: Number(item.price),
@@ -74,6 +75,15 @@ export default function CheckoutModal({ cart, isOpen, onClose, onSuccess }) {
 
       const data = await response.json();
       console.log('4. Respuesta MP:', data);
+
+      if (response.status === 409 && data.error === 'stock_insuficiente') {
+        const detalle = data.items
+          .map(i => `${i.name}: pediste ${i.solicitado}, hay ${i.disponible} disponible${i.disponible === 1 ? '' : 's'}`)
+          .join('\n');
+        alert(`No hay stock suficiente para continuar:\n\n${detalle}\n\nAjustá la cantidad en el carrito e intentá de nuevo.`);
+        setLoading(false);
+        return;
+      }
 
       const redirectUrl = data.sandbox_init_point || data.init_point;
       console.log('5. Redirigiendo a:', redirectUrl);

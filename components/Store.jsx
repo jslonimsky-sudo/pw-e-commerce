@@ -63,11 +63,13 @@ export default function Store() {
 
   function addToCart(productId) {
     const product = products.find(p => p.id === productId);
+    if (!product || product.stock <= 0) return;
     setCart(prev => {
       const existing = prev.find(item => item.id === productId);
       if (existing) {
+        const nextQty = Math.min(existing.quantity + 1, product.stock);
         return prev.map(item =>
-          item.id === productId ? { ...item, quantity: item.quantity + 1 } : item
+          item.id === productId ? { ...item, quantity: nextQty } : item
         );
       }
       return [...prev, { ...product, quantity: 1 }];
@@ -82,7 +84,12 @@ export default function Store() {
   function changeQty(productId, delta) {
     setCart(prev =>
       prev
-        .map(item => item.id === productId ? { ...item, quantity: item.quantity + delta } : item)
+        .map(item => {
+          if (item.id !== productId) return item;
+          const product = products.find(p => p.id === productId);
+          const maxQty = product ? product.stock : Infinity;
+          return { ...item, quantity: Math.min(item.quantity + delta, maxQty) };
+        })
         .filter(item => item.quantity > 0)
     );
   }

@@ -52,7 +52,12 @@ export default function CartPanel({ cart, isOpen, onClose, onChangeQty }) {
                   <div className="cart-item-controls">
                     <button className="qty-btn" onClick={() => onChangeQty(item.id, -1)} aria-label="Quitar uno">−</button>
                     <span className="qty-value">{item.quantity}</span>
-                    <button className="qty-btn" onClick={() => onChangeQty(item.id, 1)} aria-label="Agregar uno">+</button>
+                    <button
+                      className="qty-btn"
+                      onClick={() => onChangeQty(item.id, 1)}
+                      aria-label="Agregar uno"
+                      disabled={item.quantity >= item.stock}
+                    >+</button>
                   </div>
                 </div>
               ))
