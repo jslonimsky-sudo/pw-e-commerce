@@ -38,6 +38,15 @@ export default function AdminPage() {
         router.push('/login');
         return;
       }
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('is_admin')
+        .eq('id', session.user.id)
+        .single();
+      if (profileError || !profile?.is_admin) {
+        router.push('/');
+        return;
+      }
       setChecking(false);
       await loadData();
     }
