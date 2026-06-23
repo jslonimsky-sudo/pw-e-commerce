@@ -42,6 +42,9 @@ export default function CheckoutModal({ cart, isOpen, onClose, onSuccess }) {
         userId: user.id,
         items: cart.map(item => ({ product_id: item.id, quantity: item.quantity, price: item.price })),
         total: totalPrice,
+        shippingName: name,
+        shippingEmail: email,
+        shippingAddress: address,
       });
 
       if (error || !order) {
