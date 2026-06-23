@@ -24,22 +24,32 @@ export async function POST(request) {
       const orderId = payment.external_reference;
 
       if (orderId) {
+        const { data: existingOrder } = await supabaseAdmin
+          .from('orders')
+          .select('status')
+          .eq('id', orderId)
+          .single();
+
         if (payment.status === 'approved') {
-          await supabaseAdmin.from('orders').update({ status: 'approved' }).eq('id', orderId);
+          if (existingOrder?.status !== 'approved') {
+            await supabaseAdmin.from('orders').update({ status: 'approved' }).eq('id', orderId);
 
-          const { data: items } = await supabaseAdmin
-            .from('order_items')
-            .select('product_id, quantity')
-            .eq('order_id', orderId);
+            const { data: items } = await supabaseAdmin
+              .from('order_items')
+              .select('product_id, quantity')
+              .eq('order_id', orderId);
 
-          for (const item of items || []) {
-            await supabaseAdmin.rpc('decrement_stock', {
-              product_id: item.product_id,
-              amount: item.quantity,
-            });
+            for (const item of items || []) {
+              await supabaseAdmin.rpc('decrement_stock', {
+                product_id: item.product_id,
+                amount: item.quantity,
+              });
+            }
           }
         } else if (payment.status === 'rejected') {
-          await supabaseAdmin.from('orders').update({ status: 'rejected' }).eq('id', orderId);
+          if (existingOrder?.status !== 'rejected') {
+            await supabaseAdmin.from('orders').update({ status: 'rejected' }).eq('id', orderId);
+          }
         }
       }
     }
