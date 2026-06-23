@@ -689,6 +689,10 @@ footer {
   background: #000;
   color: #fff;
 }
+.admin-table-wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
 .admin-table {
   width: 100%;
   border-collapse: collapse;
@@ -1324,3 +1328,13 @@ footer {
   border: 1px solid var(--border);
 }
 .btn-pago-outline:hover { background: var(--surface); opacity: 1; }
+
+/* ── FOCO VISIBLE (ACCESIBILIDAD) ── */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--text);
+  outline-offset: 2px;
+}
