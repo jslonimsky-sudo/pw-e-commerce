@@ -12,27 +12,38 @@ export async function POST(request) {
 
     if (body.type === 'payment') {
       const paymentId = body.data?.id;
+      console.log('[WEBHOOK DEBUG] paymentId:', paymentId);
       if (!paymentId) return NextResponse.json({ ok: true });
 
       const mpResponse = await fetch(`https://api.mercadopago.com/v1/payments/${paymentId}`, {
         headers: { Authorization: `Bearer ${process.env.MERCADOPAGO_ACCESS_TOKEN}` },
       });
+      console.log('[WEBHOOK DEBUG] mpResponse.ok:', mpResponse.ok, 'mpResponse.status:', mpResponse.status);
 
       if (!mpResponse.ok) return NextResponse.json({ ok: true });
 
       const payment = await mpResponse.json();
+      console.log('[WEBHOOK DEBUG] payment.status:', payment.status, 'payment.external_reference:', payment.external_reference);
+
       const orderId = payment.external_reference;
+      console.log('[WEBHOOK DEBUG] orderId:', orderId);
 
       if (orderId) {
-        const { data: existingOrder } = await supabaseAdmin
+        const { data: existingOrder, error: existingOrderError } = await supabaseAdmin
           .from('orders')
           .select('status')
           .eq('id', orderId)
           .single();
+        console.log('[WEBHOOK DEBUG] existingOrder:', existingOrder, 'existingOrderError:', existingOrderError);
 
         if (payment.status === 'approved') {
           if (existingOrder?.status !== 'approved') {
-            await supabaseAdmin.from('orders').update({ status: 'approved' }).eq('id', orderId);
+            const { data: approvedUpdateData, error: approvedUpdateError } = await supabaseAdmin
+              .from('orders')
+              .update({ status: 'approved' })
+              .eq('id', orderId)
+              .select();
+            console.log('[WEBHOOK DEBUG] update approved -> data:', approvedUpdateData, 'error:', approvedUpdateError);
 
             const { data: items } = await supabaseAdmin
               .from('order_items')
@@ -48,7 +59,12 @@ export async function POST(request) {
           }
         } else if (payment.status === 'rejected') {
           if (existingOrder?.status !== 'rejected') {
-            await supabaseAdmin.from('orders').update({ status: 'rejected' }).eq('id', orderId);
+            const { data: rejectedUpdateData, error: rejectedUpdateError } = await supabaseAdmin
+              .from('orders')
+              .update({ status: 'rejected' })
+              .eq('id', orderId)
+              .select();
+            console.log('[WEBHOOK DEBUG] update rejected -> data:', rejectedUpdateData, 'error:', rejectedUpdateError);
           }
         }
       }
