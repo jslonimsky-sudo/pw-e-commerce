@@ -140,6 +140,11 @@ export async function POST(request) {
       }
     }
 
+    if (orderId && !paymentStatus) {
+      console.log('[WEBHOOK DEBUG] orderId presente pero paymentStatus sin resolver, devolviendo 500 para que MP reintente');
+      return NextResponse.json({ ok: false }, { status: 500 });
+    }
+
     return NextResponse.json({ ok: true });
   } catch (error) {
     console.error('Webhook error:', error);
