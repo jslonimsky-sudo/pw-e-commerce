@@ -10,12 +10,10 @@ async function fetchPaymentByPaymentId(paymentId) {
   const mpResponse = await fetch(`https://api.mercadopago.com/v1/payments/${paymentId}`, {
     headers: { Authorization: `Bearer ${process.env.MERCADOPAGO_ACCESS_TOKEN}` },
   });
-  console.log('[WEBHOOK DEBUG] mpResponse.ok:', mpResponse.ok, 'mpResponse.status:', mpResponse.status);
 
   if (!mpResponse.ok) return null;
 
   const payment = await mpResponse.json();
-  console.log('[WEBHOOK DEBUG] payment.status:', payment.status, 'payment.external_reference:', payment.external_reference);
 
   return { orderId: payment.external_reference, paymentStatus: payment.status };
 }
@@ -33,18 +31,11 @@ export async function POST(request) {
       body = null;
     }
 
-    console.log(
-      '[WEBHOOK DEBUG] formato detectado:',
-      body?.type ? 'JSON body' : (topic ? 'query params' : 'desconocido'),
-      '- topic/type:', body?.type || topic
-    );
-
     let orderId = null;
     let paymentStatus = null;
 
     if (body?.type === 'payment') {
       const paymentId = body.data?.id;
-      console.log('[WEBHOOK DEBUG] paymentId:', paymentId);
       if (!paymentId) return NextResponse.json({ ok: true });
 
       const result = await fetchPaymentByPaymentId(paymentId);
@@ -52,7 +43,6 @@ export async function POST(request) {
       ({ orderId, paymentStatus } = result);
     } else if (topic === 'payment') {
       const paymentId = queryId;
-      console.log('[WEBHOOK DEBUG] paymentId:', paymentId);
       if (!paymentId) return NextResponse.json({ ok: true });
 
       const result = await fetchPaymentByPaymentId(paymentId);
@@ -60,18 +50,15 @@ export async function POST(request) {
       ({ orderId, paymentStatus } = result);
     } else if (topic === 'merchant_order') {
       const merchantOrderId = queryId;
-      console.log('[WEBHOOK DEBUG] merchantOrderId:', merchantOrderId);
       if (!merchantOrderId) return NextResponse.json({ ok: true });
 
       const moResponse = await fetch(`https://api.mercadopago.com/merchant_orders/${merchantOrderId}`, {
         headers: { Authorization: `Bearer ${process.env.MERCADOPAGO_ACCESS_TOKEN}` },
       });
-      console.log('[WEBHOOK DEBUG] moResponse.ok:', moResponse.ok, 'moResponse.status:', moResponse.status);
 
       if (!moResponse.ok) return NextResponse.json({ ok: true });
 
       const merchantOrder = await moResponse.json();
-      console.log('[WEBHOOK DEBUG] merchantOrder.external_reference:', merchantOrder.external_reference);
 
       orderId = merchantOrder.external_reference;
 
@@ -80,11 +67,9 @@ export async function POST(request) {
           `https://api.mercadopago.com/v1/payments/search?external_reference=${orderId}`,
           { headers: { Authorization: `Bearer ${process.env.MERCADOPAGO_ACCESS_TOKEN}` } }
         );
-        console.log('[WEBHOOK DEBUG] searchResponse.ok:', searchResponse.ok, 'searchResponse.status:', searchResponse.status);
 
         if (searchResponse.ok) {
           const searchResult = await searchResponse.json();
-          console.log('[WEBHOOK DEBUG] payments/search results:', JSON.stringify(searchResult));
 
           const results = searchResult.results || [];
           if (results.length > 0) {
@@ -97,24 +82,20 @@ export async function POST(request) {
       }
     }
 
-    console.log('[WEBHOOK DEBUG] orderId:', orderId);
-
     if (orderId) {
-      const { data: existingOrder, error: existingOrderError } = await supabaseAdmin
+      const { data: existingOrder } = await supabaseAdmin
         .from('orders')
         .select('status')
         .eq('id', orderId)
         .single();
-      console.log('[WEBHOOK DEBUG] existingOrder:', existingOrder, 'existingOrderError:', existingOrderError);
 
       if (paymentStatus === 'approved') {
         if (existingOrder?.status !== 'approved') {
-          const { data: approvedUpdateData, error: approvedUpdateError } = await supabaseAdmin
+          await supabaseAdmin
             .from('orders')
             .update({ status: 'approved' })
             .eq('id', orderId)
             .select();
-          console.log('[WEBHOOK DEBUG] update approved -> data:', approvedUpdateData, 'error:', approvedUpdateError);
 
           const { data: items } = await supabaseAdmin
             .from('order_items')
@@ -130,18 +111,16 @@ export async function POST(request) {
         }
       } else if (paymentStatus === 'rejected') {
         if (existingOrder?.status !== 'rejected') {
-          const { data: rejectedUpdateData, error: rejectedUpdateError } = await supabaseAdmin
+          await supabaseAdmin
             .from('orders')
             .update({ status: 'rejected' })
             .eq('id', orderId)
             .select();
-          console.log('[WEBHOOK DEBUG] update rejected -> data:', rejectedUpdateData, 'error:', rejectedUpdateError);
         }
       }
     }
 
     if (orderId && !paymentStatus) {
-      console.log('[WEBHOOK DEBUG] orderId presente pero paymentStatus sin resolver, devolviendo 500 para que MP reintente');
       return NextResponse.json({ ok: false }, { status: 500 });
     }
 
