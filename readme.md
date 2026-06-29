@@ -16,7 +16,7 @@ Tienda e-commerce full-stack con catálogo, carrito, autenticación, órdenes pe
 | Lenguaje | JavaScript puro (sin TypeScript) |
 | Base de datos | Supabase (PostgreSQL) |
 | Autenticación | Supabase Auth |
-| CI/CD | GitHub Actions + Vercel |
+| CI/CD | Vercel (build, deploy y preview automáticos por push/PR) |
 | Pagos | Mercado Pago sandbox |
 
 ##  Funcionalidades
@@ -45,8 +45,17 @@ npm run dev
 ```
 
 Crear `.env.local` con:
-NEXT_PUBLIC_SUPABASE_URL=tu_url
-NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=tu_key
+
+`SUPABASE_SERVICE_ROLE_KEY` y `MERCADOPAGO_ACCESS_TOKEN` son secretos de servidor: nunca deben exponerse en el cliente ni commitearse, a diferencia de las que empiezan con `NEXT_PUBLIC_`.
+
+```
+NEXT_PUBLIC_SUPABASE_URL=tu_url_de_supabase
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=tu_publishable_key_de_supabase
+SUPABASE_SERVICE_ROLE_KEY=tu_service_role_key_de_supabase
+NEXT_PUBLIC_MERCADOPAGO_PUBLIC_KEY=tu_public_key_de_mercadopago
+MERCADOPAGO_ACCESS_TOKEN=tu_access_token_de_mercadopago
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+```
 
 ##  Uso de IA
 
