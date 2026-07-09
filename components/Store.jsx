@@ -8,7 +8,6 @@ import CartPanel from './CartPanel';
 import ProductModal from './ProductModal';
 import ProductCard from './ProductCard';
 import Footer from './Footer';
-import { getProducts } from '../lib/api/products.js';
 
 export default function Store() {
   const [page, setPage] = useState('home');
@@ -24,7 +23,9 @@ export default function Store() {
   useEffect(() => {
     async function loadProducts() {
       try {
-        const data = await getProducts();
+        const res = await fetch('/api/products');
+        if (!res.ok) throw new Error('Error al cargar productos');
+        const data = await res.json();
         setProducts(data);
       } catch {
         setError('No se pudieron cargar los productos');
