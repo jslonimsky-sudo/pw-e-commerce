@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { formatPrice } from '../lib/formatPrice';
 import { useUser } from '../context/UserContext';
-import { createOrder } from '../lib/api/orders';
+import { supabase } from '../lib/supabase.js';
 
 export default function CheckoutModal({ cart, isOpen, onClose, onSuccess }) {
   const { user } = useUser();
@@ -38,21 +38,32 @@ export default function CheckoutModal({ cart, isOpen, onClose, onSuccess }) {
     setLoading(true);
 
     try {
-      const { order, error } = await createOrder({
-        userId: user.id,
-        items: cart.map(item => ({ product_id: item.id, quantity: item.quantity, price: item.price })),
-        total: totalPrice,
-        shippingName: name,
-        shippingEmail: email,
-        shippingAddress: address,
+      const { data: { session } } = await supabase.auth.getSession();
+
+      const orderResponse = await fetch('/api/orders', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session?.access_token}`,
+        },
+        body: JSON.stringify({
+          items: cart.map(item => ({ product_id: item.id, quantity: item.quantity, price: item.price })),
+          total: totalPrice,
+          shippingName: name,
+          shippingEmail: email,
+          shippingAddress: address,
+        }),
       });
 
-      if (error || !order) {
-        console.error('Error creando orden:', error);
+      if (orderResponse.status !== 201) {
+        const errData = await orderResponse.json().catch(() => ({}));
+        console.error('Error creando orden:', errData.error);
         alert('Error al crear la orden');
         setLoading(false);
         return;
       }
+
+      const { order } = await orderResponse.json();
 
       const response = await fetch('/api/create-preference', {
         method: 'POST',
