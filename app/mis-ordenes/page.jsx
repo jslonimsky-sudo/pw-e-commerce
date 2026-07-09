@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '../../lib/supabase.js';
-import { getUserOrders } from '../../lib/api/orders.js';
 
 export default function MisOrdenesPage() {
   const router = useRouter();
@@ -19,7 +18,14 @@ export default function MisOrdenesPage() {
         return;
       }
       try {
-        const data = await getUserOrders(session.user.id);
+        const res = await fetch('/api/orders', {
+          headers: { Authorization: `Bearer ${session.access_token}` },
+        });
+        if (res.status === 401) {
+          router.push('/login');
+          return;
+        }
+        const data = await res.json();
         setOrders(data);
       } catch (err) {
         setError('No se pudieron cargar las órdenes. Intentá de nuevo más tarde.');
