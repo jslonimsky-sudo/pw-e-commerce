@@ -4,7 +4,6 @@ import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '../../lib/supabase.js';
 import { getAllProducts, createProduct, updateProduct, deleteProduct } from '../../lib/api/products.js';
-import { updateOrderStatus } from '../../lib/api/orders.js';
 
 const EMPTY_FORM = { name: '', price: '', stock: '', category: '', description: '', image_url: '' };
 
@@ -145,8 +144,18 @@ export default function AdminPage() {
   }
 
   async function handleStatusChange(orderId, newStatus) {
-    const { error: err } = await updateOrderStatus(orderId, newStatus);
-    if (err) {
+    const { data: { session } } = await supabase.auth.getSession();
+
+    const response = await fetch(`/api/admin/orders/${orderId}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${session?.access_token}`,
+      },
+      body: JSON.stringify({ status: newStatus }),
+    });
+
+    if (!response.ok) {
       showToast(orderId, 'Error al actualizar el estado.');
       return;
     }
